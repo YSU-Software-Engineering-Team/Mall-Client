@@ -4,8 +4,8 @@
       <el-aside class="aside">
         <div class="head">
           <div>
-            <img src="//s.weituibao.com/1582958061265/mlogo.png" alt="logo">
-            <span>vue3 admin</span>
+            <img :src="Logo" alt="logo">
+            <span>商城后台管理</span>
           </div>
         </div>
         <div class="line" />
@@ -18,10 +18,10 @@
         >
           <el-sub-menu index="1">
             <template #title>
-              <span>Dashboard</span>
+              <span>数据列表</span>
             </template>
             <el-menu-item-group>
-              <el-menu-item index="/"><el-icon><Odometer /></el-icon>首页</el-menu-item>
+      
               <el-menu-item index="/add"><el-icon><Plus /></el-icon>添加商品</el-menu-item>
             </el-menu-item-group>
           </el-sub-menu>
@@ -77,7 +77,7 @@ import { useRouter } from 'vue-router'
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 import { localGet, pathMap } from '@/utils'
-
+import Logo from '@/assets/商品活动.png'
 const noMenu = ['/login']
 const router = useRouter()
 const state = reactive({
