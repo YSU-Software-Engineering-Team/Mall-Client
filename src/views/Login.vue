@@ -1,10 +1,10 @@
-
-
 <template>
   <div class="login">
-    <s-header :name="type == 'login' ? '登录' : '注册'" :back="'/home'"></s-header>
-    <img class="logo" src="https://s.yezgea02.com/1604045825972/newbee-mall-vue3-app-logo.png" alt="">
-    <div v-if="state.type == 'login'" class="login-body login">
+    <s-header :name="type === 'login' ? '登录' : '注册'" :back="'/home'"/>
+    <img class="logo"
+         src="https://s.yezgea02.com/1604045825972/newbee-mall-vue3-app-logo.png"
+         alt=""/>
+    <div v-if="state.type === 'login'" class="login-body login">
       <van-form @submit="onSubmit">
         <van-field
           v-model="state.username"
@@ -29,7 +29,7 @@
           v-model="state.verify"
         >
           <template #button>
-            <vue-img-verify ref="verifyRef" />
+            <vue-img-verify ref="verifyRef"/>
           </template>
         </van-field>
         <div style="margin: 16px;">
@@ -38,6 +38,7 @@
         </div>
       </van-form>
     </div>
+
     <div v-else class="login-body register">
       <van-form @submit="onSubmit">
         <van-field
@@ -56,6 +57,16 @@
           :rules="[{ required: true, message: '请填写密码' }]"
         />
         <van-field
+          v-model="state.phone"
+          name="phone"
+          label="手机号"
+          placeholder="手机号"
+          :rules="[
+            { required: true, message: '请填写手机号' },
+            { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确' }
+          ]"
+        />
+        <van-field
           center
           clearable
           label="验证码"
@@ -63,7 +74,7 @@
           v-model="state.verify"
         >
           <template #button>
-            <vue-img-verify ref="verifyRef" />
+            <vue-img-verify ref="verifyRef"/>
           </template>
         </van-field>
         <div style="margin: 16px;">
@@ -83,115 +94,134 @@ import { login, register } from '@/service/user'
 import { setLocal } from '@/common/js/utils'
 import md5 from 'js-md5'
 import { showSuccessToast, showFailToast } from 'vant'
+
 const verifyRef = ref(null)
 const state = reactive({
   username: '',
   password: '',
   username1: '',
   password1: '',
+  phone: '',
   type: 'login',
   imgCode: '',
   verify: ''
 })
 
-// 切换登录和注册两种模式
-const toggle = (v) => {
-  state.type = v
+const toggle = (mode) => {
+  state.type = mode
   state.verify = ''
 }
 
-// 提交登录或注册表单
-const onSubmit = async (values) => {
+// 统一处理响应
+function handleResponse(resp) {
+  if (resp.code === 200) {
+    if (state.type === 'login') {
+      // 打印 token
+      console.log('登录成功，token:', resp.data)
+      setLocal('token', resp.data)     
+      window.location.href = '/'       
+    } else {
+      showSuccessToast('注册成功')
+      state.type = 'login'
+      state.username1 = ''
+      state.password1 = ''
+      state.phone = ''
+      state.verify = ''
+    }
+  } else {
+    showFailToast(resp.message || '操作失败')
+  }
+}
+
+const onSubmit = (values) => {
   state.imgCode = verifyRef.value.state.imgCode || ''
-  if (state.verify.toLowerCase() != state.imgCode.toLowerCase()) {
+  if (state.verify.toLowerCase() !== state.imgCode.toLowerCase()) {
     showFailToast('验证码有误')
     return
   }
-  if (state.type == 'login') {
-    const { data } = await login({
-      "loginName": values.username,
-      "passwordMd5": md5(values.password)
+
+  const promise = state.type === 'login'
+    ? login({ username: values.username, password: md5(values.password) })
+    : register({
+        username: values.username1,
+        password: md5(values.password1),
+        phone: state.phone,
+        avatar: '',
+        role: 'customer',
+        status: 1
+      })
+
+  promise
+    .then(resp => {
+      handleResponse(resp)
     })
-    setLocal('token', data)
-    // 需要刷新页面，否则 axios.js 文件里的 token 不会被重置
-    window.location.href = '/'
-  } else {
-    await register({
-      "loginName": values.username1,
-      "password": values.password1
+    .catch(err => {
+      if (err && err.code === 200) {
+        handleResponse(err)
+      } else {
+        console.error('登录异常：', err)
+        showFailToast(err.message || '网络异常，请稍后重试')
+      }
     })
-    showSuccessToast('注册成功')
-    state.type = 'login'
-    state.verify = ''
-  }
 }
 </script>
 
 <style lang="less">
+.login {
+  .logo {
+    width: 120px;
+    height: 120px;
+    display: block;
+    margin: 80px auto 20px;
+  }
+  .login-body {
+    padding: 0 20px;
+  }
   .login {
-    .logo {
-      width: 120px;
-      height: 120px;
-      display: block;
-      margin: 80px auto 20px;
-    }
-    .login-body {
-      padding: 0 20px;
-    }
-    .login {
-      .link-register {
-        font-size: 14px;
-        margin-bottom: 20px;
-        color: #1989fa;
-        display: inline-block;
-      }
-    }
-    .register {
-      .link-login {
-        font-size: 14px;
-        margin-bottom: 20px;
-        color: #1989fa;
-        display: inline-block;
-      }
-    }
-    .verify-bar-area {
-      margin-top: 24px;
-      .verify-left-bar {
-        border-color: #1baeae;
-      }
-      .verify-move-block {
-        background-color: #1baeae;
-        color: #fff;
-      }
-    }
-    .verify {
-      >div {
-        width: 100%;
-      }
-      display: flex;
-      justify-content: center;
-      .cerify-code-panel {
-        margin-top: 16px;
-      }
-      .verify-code {
-        width: 40%!important;
-        float: left!important;
-      }
-      .verify-code-area {
-        float: left!important;
-        width: 54%!important;
-        margin-left: 14px!important;
-        .varify-input-code {
-          width: 90px;
-          height: 38px!important;
-          border: 1px solid #e9e9e9;
-          padding-left: 10px;
-          font-size: 16px;
-        }
-        .verify-change-area {
-          line-height: 44px;
-        }
-      }
+    .link-register {
+      font-size: 14px;
+      margin-bottom: 20px;
+      color: #1989fa;
+      display: inline-block;
     }
   }
+  .register {
+    .link-login {
+      font-size: 14px;
+      margin-bottom: 20px;
+      color: #1989fa;
+      display: inline-block;
+    }
+  }
+  .verify-bar-area {
+    margin-top: 24px;
+    .verify-left-bar {
+      border-color: #1baeae;
+    }
+    .verify-move-block {
+      background-color: #1baeae;
+      color: #fff;
+    }
+  }
+  .verify {
+    display: flex;
+    justify-content: center;
+    > div { width: 100%; }
+    .cerify-code-panel { margin-top: 16px; }
+    .verify-code { width: 40% !important; float: left !important; }
+    .verify-code-area {
+      float: left !important;
+      width: 54% !important;
+      margin-left: 14px !important;
+      .varify-input-code {
+        width: 90px;
+        height: 38px !important;
+        border: 1px solid #e9e9e9;
+        padding-left: 10px;
+        font-size: 16px;
+      }
+      .verify-change-area { line-height: 44px; }
+    }
+  }
+}
 </style>

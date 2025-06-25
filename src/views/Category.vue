@@ -34,7 +34,7 @@
                     <div class="category-list" v-for="(products, index) in category.secondLevelCategoryVOS" :key="index">
                       <p class="catogory-title">{{products.categoryName}}</p>
                       <div class="product-item" v-for="(product, index) in products.thirdLevelCategoryVOS" :key="index" @click="selectProduct(product)">
-                        <img src="//s.weituibao.com/1583591077131/%E5%88%86%E7%B1%BB.png" class="product-img"/>
+                        <img :src="imglogo" class="product-img"/>
                         <p v-text="product.categoryName" class="product-title"></p>
                       </div>
                     </div>
@@ -56,6 +56,7 @@ import navBar from '@/components/NavBar.vue'
 import listScroll from '@/components/ListScroll.vue'
 import { getCategory } from "@/service/good"
 import { showLoadingToast, closeToast } from 'vant'
+import imglogo from '@/assets/image/订单编号.png'
 const router = useRouter()
 // composition API 获取 refs 的形式
 const searchWrap = ref(null)
