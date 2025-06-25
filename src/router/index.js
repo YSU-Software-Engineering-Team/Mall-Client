@@ -1,12 +1,17 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 const router = createRouter({
-  history: createWebHashHistory(), // hash模式：createWebHashHistory，history模式：createWebHistory
+  history: createWebHashHistory(),
   routes: [
+    {
+      path: '/',
+      name: 'home',  // 默认路由
+      redirect: '/dashboard',  // 重定向到 /dashboard
+    },
     {
       path: '/dashboard',
       name: 'dashboard',
-      component: () => import(/* webpackChunkName: "dashboard" */ '../views/Index.vue')
+      component: () => import(/* webpackChunkName: "dashboard" */ '../views/Index.vue'),  // 指向 dashboard 页面
     },
     {
       path: '/login',
@@ -44,12 +49,12 @@ const router = createRouter({
       component: () => import(/* webpackChunkName: "category" */ '../views/Category.vue'),
       children: [
         {
-          path: '/category/level2',
+          path: 'level2',  // 改为相对路径
           name: 'level2',
           component: () => import(/* webpackChunkName: "level2" */ '../views/Category.vue'),
         },
         {
-          path: '/category/level3',
+          path: 'level3',  // 改为相对路径
           name: 'level3',
           component: () => import(/* webpackChunkName: "level3" */ '../views/Category.vue'),
         }
@@ -58,7 +63,7 @@ const router = createRouter({
     {
       path: '/good',
       name: 'good',
-      component: () => import(/* webpackChunkName: "new" */ '../views/Good.vue')
+      component: () => import(/* webpackChunkName: "good" */ '../views/Good.vue')
     },
     {
       path: '/guest',
@@ -68,17 +73,20 @@ const router = createRouter({
     {
       path: '/order',
       name: 'order',
-      component: () => import(/* webpackChunkName: "order" */ '../views/Order.vue')
+      component: () => import(/* webpackChunkName: "order" */ '../views/Order.vue'),
+      meta: { requiresAuth: true }  // 需要认证
     },
     {
       path: '/order_detail',
       name: 'order_detail',
-      component: () => import(/* webpackChunkName: "order_detail" */ '../views/OrderDetail.vue')
+      component: () => import(/* webpackChunkName: "order_detail" */ '../views/OrderDetail.vue'),
+      meta: { requiresAuth: true }  // 需要认证
     },
     {
       path: '/account',
       name: 'account',
-      component: () => import(/* webpackChunkName: "account" */ '../views/Account.vue')
+      component: () => import(/* webpackChunkName: "account" */ '../views/Account.vue'),
+      meta: { requiresAuth: true }  // 需要认证
     }
   ]
 })
